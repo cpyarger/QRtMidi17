@@ -1,8 +1,6 @@
 #pragma once
 #define NOMINMAX 1
 #define WIN32_LEAN_AND_MEAN 1
-#include <windows.h>
-
 #include <algorithm>
 #include <chrono>
 #include <condition_variable>
@@ -13,6 +11,7 @@
 #include <rtmidi17/rtmidi17.hpp>
 #include <sstream>
 #include <thread>
+#include <windows.h>
 
 // Default for Windows is to add an identifier to the port names; this
 // flag can be defined (e.g. in your project file) to disable this behaviour.
@@ -54,9 +53,9 @@ struct WinMidiData
 // time values.
 
 // Convert a nullptr-terminated wide string or ANSI-encoded string to UTF-8.
-inline std::string ConvertToUTF8(const TCHAR* str)
+inline QString ConvertToUTF8(const TCHAR* str)
 {
-  std::string u8str;
+  QString u8str;
   const WCHAR* wstr = L"";
 #if defined(UNICODE) || defined(_UNICODE)
   wstr = str;
@@ -84,7 +83,7 @@ inline std::string ConvertToUTF8(const TCHAR* str)
 class observer_winmm final : public observer_api
 {
 private:
-  using CallbackFunc = std::function<void(int, std::string)>;
+  using CallbackFunc = std::function<void(int, QString)>;
 
   std::thread watchThread;
   std::condition_variable watchThreadCV;
@@ -95,7 +94,7 @@ private:
   inline static const bool OUTPUT = false;
 
 public:
-  using PortList = std::vector<std::string>;
+  using PortList = std::vector<QString>;
 
   PortList inputPortList;
   PortList outputPortList;
@@ -180,7 +179,7 @@ public:
     unsigned int nDevices = input ? midiInGetNumDevs() : midiOutGetNumDevs();
     for (unsigned int ix = 0; ix < nDevices; ++ix)
     {
-      std::string portName;
+      QString portName;
       if (input)
       {
         MIDIINCAPS deviceCaps;
@@ -203,8 +202,7 @@ class midi_in_winmm final : public midi_in_default<midi_in_winmm>
 {
 public:
   static const constexpr auto backend = "WinMM";
-  midi_in_winmm(std::string_view, unsigned int queueSizeLimit)
-      : midi_in_default{&data, queueSizeLimit}
+  midi_in_winmm(QStringView, unsigned int queueSizeLimit) : midi_in_default{&data, queueSizeLimit}
   {
     // We'll issue a warning here if no devices are available but not
     // throw an error since the user can plugin something later.
@@ -233,7 +231,7 @@ public:
     return rtmidi::API::WINDOWS_MM;
   }
 
-  void open_port(unsigned int portNumber, std::string_view) override
+  void open_port(unsigned int portNumber, QStringView) override
   {
     if (connected_)
     {
@@ -346,9 +344,9 @@ public:
     return midiInGetNumDevs();
   }
 
-  std::string get_port_name(unsigned int portNumber) override
+  QString get_port_name(unsigned int portNumber) override
   {
-    std::string stringName;
+    QString stringName;
     unsigned int nDevices = midiInGetNumDevs();
     if (portNumber >= nDevices)
     {
@@ -518,7 +516,7 @@ class midi_out_winmm final : public midi_out_default<midi_out_winmm>
 {
 public:
   static const constexpr auto backend = "WinMM";
-  midi_out_winmm(std::string_view)
+  midi_out_winmm(QStringView)
   {
     // We'll issue a warning here if no devices are available but not
     // throw an error since the user can plug something in later.
@@ -526,8 +524,8 @@ public:
     if (nDevices == 0)
     {
       warning(
-          "MidiOutWinMM::initialize: no MIDI output devices currently "
-          "available.");
+          QString("MidiOutWinMM::initialize: no MIDI output devices currently "
+                  "available."));
     }
   }
 
@@ -542,27 +540,29 @@ public:
     return rtmidi::API::WINDOWS_MM;
   }
 
-  void open_port(unsigned int portNumber, std::string_view portName) override
+  void open_port(unsigned int portNumber, QStringView portName) override
   {
     if (connected_)
     {
-      warning("MidiOutWinMM::openPort: a valid connection already exists!");
+      warning(QString("MidiOutWinMM::openPort: a valid connection already exists!"));
       return;
     }
 
     unsigned int nDevices = midiOutGetNumDevs();
     if (nDevices < 1)
     {
-      error<no_devices_found_error>("MidiOutWinMM::openPort: no MIDI output destinations found!");
+      error<no_devices_found_error>(
+          QString("MidiOutWinMM::openPort: no MIDI output destinations found!"));
       return;
     }
 
     if (portNumber >= nDevices)
     {
-      std::ostringstream ost;
-      ost << "MidiOutWinMM::openPort: the 'portNumber' argument (" << portNumber
-          << ") is invalid.";
-      error<invalid_parameter_error>(ost.str());
+      QString ost;
+      ost.append("MidiOutWinMM::openPort: the 'portNumber' argument (");
+      ost.append(portNumber);
+      ost.append(") is invalid.");
+      error<invalid_parameter_error>(ost);
       return;
     }
 
@@ -570,8 +570,8 @@ public:
     if (result != MMSYSERR_NOERROR)
     {
       error<driver_error>(
-          "MidiOutWinMM::openPort: error creating Windows MM MIDI output "
-          "port.");
+          QString("MidiOutWinMM::openPort: error creating Windows MM MIDI output "
+                  "port."));
       return;
     }
 
@@ -594,16 +594,17 @@ public:
     return midiOutGetNumDevs();
   }
 
-  std::string get_port_name(unsigned int portNumber) override
+  QString get_port_name(unsigned int portNumber) override
   {
-    std::string stringName;
+    QString stringName;
     unsigned int nDevices = midiOutGetNumDevs();
     if (portNumber >= nDevices)
     {
-      std::ostringstream ost;
-      ost << "MidiOutWinMM::getPortName: the 'portNumber' argument (" << portNumber
-          << ") is invalid.";
-      warning(ost.str());
+      QString ost;
+      ost.append("MidiOutWinMM::getPortName: the 'portNumber' argument (");
+      ost.append(portNumber);
+      ost.append(") is invalid.");
+      warning(ost);
       return stringName;
     }
 

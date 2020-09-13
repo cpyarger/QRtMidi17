@@ -63,9 +63,7 @@
 #include <memory>
 #include <rtmidi17/message.hpp>
 #include <stdexcept>
-#include <string>
-#include <string_view>
-#include <vector>
+#include <QObject>
 
 #if defined(RTMIDI17_EXPORTS)
 #  if defined(_MSC_VER)
@@ -159,7 +157,7 @@ struct RTMIDI17_EXPORT thread_error final : public midi_exception
     Note that class behaviour is undefined after a critical error (not
     a warning) is reported.
  */
-using midi_error_callback = std::function<void(midi_error type, std::string_view errorText)>;
+using midi_error_callback = std::function<void(midi_error type, QStringView errorText)>;
 
 //! MIDI API specifier arguments.
 enum class API
@@ -183,7 +181,7 @@ enum class API
 std::vector<rtmidi::API> available_apis() noexcept;
 
 //! A static function to determine the current version.
-std::string get_version() noexcept;
+QString get_version() noexcept;
 
 //! The callbacks will be called whenever a device is added or removed
 //! for a given API.
@@ -192,10 +190,10 @@ class RTMIDI17_EXPORT observer
 public:
   struct callbacks
   {
-    std::function<void(int, std::string)> input_added;
-    std::function<void(int, std::string)> input_removed;
-    std::function<void(int, std::string)> output_added;
-    std::function<void(int, std::string)> output_removed;
+    std::function<void(int, QString)> input_added;
+    std::function<void(int, QString)> input_removed;
+    std::function<void(int, QString)> output_added;
+    std::function<void(int, QString)> output_removed;
   };
 
   observer(rtmidi::API, callbacks);
@@ -249,7 +247,7 @@ public:
   */
   midi_in(
       rtmidi::API api = API::UNSPECIFIED,
-      std::string_view clientName = "RtMidi Input Client",
+      QStringView clientName = QString("RtMidi Input Client"),
       unsigned int queueSizeLimit = 100);
 
   //! If a MIDI connection is still open, it will be closed by the destructor.
@@ -265,14 +263,14 @@ public:
     \param portName A name for the application port that is used to
     connect to portId can be specified.
   */
-  void open_port(unsigned int portNumber, std::string_view portName);
+  void open_port(unsigned int portNumber, QStringView portName);
   void open_port()
   {
-    open_port(0, "RtMidi17 Input");
+    open_port(0, QString("RtMidi17 Input"));
   }
   void open_port(unsigned int port)
   {
-    open_port(port, "RtMidi17 Input");
+    open_port(port, QString("RtMidi17 Input"));
   }
 
   //! Create a virtual input port, with optional name, to allow software
@@ -286,10 +284,10 @@ public:
     \param portName An optional name for the application port that is
                     used to connect to portId can be specified.
   */
-  void open_virtual_port(std::string_view portName);
+  void open_virtual_port(QStringView portName);
   void open_virtual_port()
   {
-    open_virtual_port("RtMidi17 virtual port");
+    open_virtual_port(QString("RtMidi17 virtual port"));
   }
   //! Set a callback function to be invoked for incoming MIDI messages.
   /*!
@@ -333,7 +331,7 @@ public:
             An empty string is returned if an invalid port specifier
             is provided. User code should assume a UTF-8 encoding.
   */
-  std::string get_port_name(unsigned int portNumber = 0);
+  QString get_port_name(unsigned int portNumber = 0);
 
   //! Specify whether certain MIDI message types should be queued or ignored
   //! during input.
@@ -365,9 +363,9 @@ public:
   */
   void set_error_callback(midi_error_callback errorCallback);
 
-  void set_client_name(std::string_view clientName);
+  void set_client_name(QStringView clientName);
 
-  void set_port_name(std::string_view portName);
+  void set_port_name(QStringView portName);
 
 private:
   std::unique_ptr<class midi_in_api> rtapi_;
@@ -400,9 +398,9 @@ public:
     compiled, the default order of use is ALSA, JACK (Linux) and CORE,
     JACK (OS-X).
   */
-  midi_out(rtmidi::API api, std::string_view clientName);
+  midi_out(rtmidi::API api, QStringView clientName);
 
-  midi_out() : midi_out{rtmidi::API::UNSPECIFIED, "RtMidi client"}
+  midi_out() : midi_out{rtmidi::API::UNSPECIFIED, QString("RtMidi client")}
   {
   }
 
@@ -419,14 +417,14 @@ public:
       exception is thrown if an error occurs while attempting to make
       the port connection.
   */
-  void open_port(unsigned int portNumber, std::string_view portName);
+  void open_port(unsigned int portNumber, QStringView portName);
   void open_port()
   {
-    open_port(0, "RtMidi17 Output");
+    open_port(0, QString("RtMidi17 Output"));
   }
   void open_port(unsigned int port)
   {
-    open_port(port, "RtMidi17 Output");
+    open_port(port, QString("RtMidi17 Output"));
   }
 
   //! Close an open MIDI connection (if one exists).
@@ -449,10 +447,10 @@ public:
       An exception is thrown if an error occurs while attempting to
       create the virtual port.
   */
-  void open_virtual_port(std::string_view portName);
+  void open_virtual_port(QStringView portName);
   void open_virtual_port()
   {
-    open_virtual_port("RtMidi17 virtual port");
+    open_virtual_port(QString("RtMidi17 virtual port"));
   }
 
   //! Return the number of available MIDI output ports.
@@ -464,7 +462,7 @@ public:
             An empty string is returned if an invalid port specifier
             is provided. User code should assume a UTF-8 encoding.
   */
-  std::string get_port_name(unsigned int portNumber = 0);
+  QString get_port_name(unsigned int portNumber = 0);
 
   //! Immediately send a single message out an open MIDI output port.
   /*!
@@ -492,9 +490,9 @@ public:
   */
   void set_error_callback(midi_error_callback errorCallback) noexcept;
 
-  void set_client_name(std::string_view clientName);
+  void set_client_name(QStringView clientName);
 
-  void set_port_name(std::string_view portName);
+  void set_port_name(QStringView portName);
 
 private:
   std::unique_ptr<class midi_out_api> rtapi_;

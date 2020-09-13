@@ -1,6 +1,6 @@
 #include <cmath>
 #include <sstream>
-
+#include <QObject>
 #if !defined(RTMIDI17_HEADER_ONLY)
 #  include <rtmidi17/rtmidi17.hpp>
 #endif
@@ -129,7 +129,7 @@ open_midi_observer(rtmidi::API api, observer::callbacks&& cb)
 }
 
 [[nodiscard]] RTMIDI17_INLINE std::unique_ptr<midi_in_api>
-open_midi_in(rtmidi::API api, std::string_view clientName, unsigned int queueSizeLimit)
+open_midi_in(rtmidi::API api, QStringView clientName, unsigned int queueSizeLimit)
 {
   std::unique_ptr<midi_in_api> ptr;
 
@@ -141,7 +141,7 @@ open_midi_in(rtmidi::API api, std::string_view clientName, unsigned int queueSiz
 }
 
 [[nodiscard]] RTMIDI17_INLINE std::unique_ptr<midi_out_api>
-open_midi_out(rtmidi::API api, std::string_view clientName)
+open_midi_out(rtmidi::API api, QStringView clientName)
 {
 
   std::unique_ptr<midi_out_api> ptr;
@@ -167,13 +167,13 @@ rtmidi::API midi_in::get_current_api() const noexcept
 }
 
 RTMIDI17_INLINE
-void midi_in::open_port(unsigned int portNumber, std::string_view portName)
+void midi_in::open_port(unsigned int portNumber, QStringView portName)
 {
   rtapi_->open_port(portNumber, portName);
 }
 
 RTMIDI17_INLINE
-void midi_in::open_virtual_port(std::string_view portName)
+void midi_in::open_virtual_port(QStringView portName)
 {
   rtapi_->open_virtual_port(portName);
 }
@@ -209,7 +209,7 @@ unsigned int midi_in::get_port_count()
 }
 
 RTMIDI17_INLINE
-std::string midi_in::get_port_name(unsigned int portNumber)
+QString midi_in::get_port_name(unsigned int portNumber)
 {
   return rtapi_->get_port_name(portNumber);
 }
@@ -239,13 +239,13 @@ rtmidi::API midi_out::get_current_api() noexcept
 }
 
 RTMIDI17_INLINE
-void midi_out::open_port(unsigned int portNumber, std::string_view portName)
+void midi_out::open_port(unsigned int portNumber, QStringView portName)
 {
   rtapi_->open_port(portNumber, portName);
 }
 
 RTMIDI17_INLINE
-void midi_out::open_virtual_port(std::string_view portName)
+void midi_out::open_virtual_port(QStringView portName)
 {
   rtapi_->open_virtual_port(portName);
 }
@@ -269,7 +269,7 @@ unsigned int midi_out::get_port_count()
 }
 
 RTMIDI17_INLINE
-std::string midi_out::get_port_name(unsigned int portNumber)
+QString midi_out::get_port_name(unsigned int portNumber)
 {
   return rtapi_->get_port_name(portNumber);
 }
@@ -299,13 +299,13 @@ void midi_out::set_error_callback(midi_error_callback errorCallback) noexcept
 }
 
 RTMIDI17_INLINE
-std::string get_version() noexcept
+QString get_version() noexcept
 {
-  return std::string{RTMIDI17_VERSION};
+  return QString{RTMIDI17_VERSION};
 }
 
 RTMIDI17_INLINE
-midi_in::midi_in(rtmidi::API api, std::string_view clientName, unsigned int queueSizeLimit)
+midi_in::midi_in(rtmidi::API api, QStringView clientName, unsigned int queueSizeLimit)
 {
   if (api != rtmidi::API::UNSPECIFIED)
   {
@@ -338,19 +338,19 @@ midi_in::midi_in(rtmidi::API api, std::string_view clientName, unsigned int queu
 }
 
 RTMIDI17_INLINE
-void midi_in::set_client_name(std::string_view clientName)
+void midi_in::set_client_name(QStringView clientName)
 {
   rtapi_->set_client_name(clientName);
 }
 
 RTMIDI17_INLINE
-void midi_in::set_port_name(std::string_view portName)
+void midi_in::set_port_name(QStringView portName)
 {
   rtapi_->set_port_name(portName);
 }
 
 RTMIDI17_INLINE
-midi_out::midi_out(rtmidi::API api, std::string_view clientName)
+midi_out::midi_out(rtmidi::API api, QStringView clientName)
 {
   if (api != rtmidi::API::UNSPECIFIED)
   {
@@ -390,13 +390,13 @@ midi_out::midi_out(rtmidi::API api, std::string_view clientName)
 }
 
 RTMIDI17_INLINE
-void midi_out::set_client_name(std::string_view clientName)
+void midi_out::set_client_name(QStringView clientName)
 {
   rtapi_->set_client_name(clientName);
 }
 
 RTMIDI17_INLINE
-void midi_out::set_port_name(std::string_view portName)
+void midi_out::set_port_name(QStringView portName)
 {
   rtapi_->set_port_name(portName);
 }

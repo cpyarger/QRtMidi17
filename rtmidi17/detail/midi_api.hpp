@@ -2,7 +2,8 @@
 #include <iostream>
 #include <rtmidi17/rtmidi17.hpp>
 #include <string_view>
-
+#include <QtDebug>
+#include <QtGlobal>
 namespace rtmidi
 {
 class observer_api
@@ -29,14 +30,14 @@ public:
   midi_api& operator=(midi_api&&) = delete;
 
   virtual rtmidi::API get_current_api() const noexcept = 0;
-  virtual void open_port(unsigned int portNumber, std::string_view portName) = 0;
-  virtual void open_virtual_port(std::string_view) = 0;
+  virtual void open_port(unsigned int portNumber, QStringView portName) = 0;
+  virtual void open_virtual_port(QStringView) = 0;
   virtual void close_port() = 0;
-  virtual void set_client_name(std::string_view) = 0;
-  virtual void set_port_name(std::string_view) = 0;
+  virtual void set_client_name(QStringView) = 0;
+  virtual void set_port_name(QStringView) = 0;
 
   virtual unsigned int get_port_count() = 0;
-  virtual std::string get_port_name(unsigned int portNumber) = 0;
+  virtual QString get_port_name(unsigned int portNumber) = 0;
 
   bool is_port_open() const noexcept
   {
@@ -50,7 +51,7 @@ public:
 
   //! Error reporting function for RtMidi classes. Throws.
   template <typename Error_T>
-  void error(std::string_view errorString) const
+  void error(QStringView errorString) const
   {
     if (errorCallback_)
     {
@@ -65,13 +66,13 @@ public:
     }
     else
     {
-      std::cerr << '\n' << errorString << "\n\n";
+      qDebug() << '\n' << errorString << "\n\n";
       throw Error_T{errorString.data()};
     }
   }
 
   //! Warning reporting function for RtMidi classes.
-  void warning(std::string_view errorString) const
+  void warning(QStringView errorString) const
   {
     if (errorCallback_)
     {
@@ -86,7 +87,7 @@ public:
       return;
     }
 
-    std::cerr << '\n' << errorString << "\n\n";
+    qDebug() << '\n' << errorString << "\n\n";
   }
 
 protected:
@@ -145,8 +146,8 @@ public:
     if (inputData_.userCallback)
     {
       warning(
-          "RtMidiIn::getNextMessage: a user callback is currently set for "
-          "this port.");
+          QString("RtMidiIn::getNextMessage: a user callback is currently set for "
+                  "this port."));
       return {};
     }
 
@@ -237,17 +238,17 @@ template <typename T>
 class midi_in_default : public midi_in_api
 {
   using midi_in_api::midi_in_api;
-  void open_virtual_port(std::string_view) override
+  void open_virtual_port(QStringView) override
   {
     using namespace std::literals;
     warning(T::backend + " in: open_virtual_port unsupported"s);
   }
-  void set_client_name(std::string_view) override
+  void set_client_name(QStringView) override
   {
     using namespace std::literals;
     warning(T::backend + " in: set_client_name unsupported"s);
   }
-  void set_port_name(std::string_view) override
+  void set_port_name(QStringView) override
   {
     using namespace std::literals;
     warning(T::backend + " in: set_port_name unsupported"s);
@@ -258,17 +259,17 @@ template <typename T>
 class midi_out_default : public midi_out_api
 {
   using midi_out_api::midi_out_api;
-  void open_virtual_port(std::string_view) override
+  void open_virtual_port(QStringView) override
   {
     using namespace std::literals;
     warning(T::backend + " out: open_virtual_port unsupported"s);
   }
-  void set_client_name(std::string_view) override
+  void set_client_name(QStringView) override
   {
     using namespace std::literals;
     warning(T::backend + " out: set_client_name unsupported"s);
   }
-  void set_port_name(std::string_view) override
+  void set_port_name(QStringView) override
   {
     using namespace std::literals;
     warning(T::backend + " out: set_port_name unsupported"s);
